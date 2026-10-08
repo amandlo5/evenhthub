@@ -29,3 +29,7 @@ Thumbs.db
 # Playwright test artifacts
 playwright-report/
 test-results/
+.claude/
+
+# Large local binaries not meant for Git
+claude.exe*
