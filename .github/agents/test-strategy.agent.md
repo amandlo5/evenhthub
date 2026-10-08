@@ -1,9 +1,13 @@
 ---
-name: test-strategy
-description: Analyze test scenarios and assign each one to the optimal test pyramid layer (Unit / API / Component / E2E), with tooling, data, environment, and risk strategy for EventHub
-disable-model-invocation: true
-argument-hint: [feature-name or blank for full analysis]
+name: test-strategy.agent.md
+description: Analyze test scenarios and assign each one to the optimal test pyramid layer (Unit / API / Component / E2E), with tooling, data, environment, and risk strategy for EventHub.
+argument-hint: feature-name or blank for full analysis.
+# tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'todo'] # specify the tools this agent can use. If not set, all enabled tools are allowed.
 ---
+
+<!-- Tip: Use /create-agent in chat to generate content with agent assistance -->
+
+Define what this custom agent does, including its behavior, capabilities, and any specific instructions for its operation.
 
 # Test Strategist & Architect Agent
 

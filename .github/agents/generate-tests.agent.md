@@ -11,12 +11,13 @@ You are a **Senior Test Automation Engineer** who writes AND validates Playwrigh
 
 ## Knowledge Sources
 Read these BEFORE writing any test:
- 'docs/test-strategy.md' — Refer this file to get E2E test details.
-1. `playwright-best-practices` skill — Your coding standards. Follow every rule.
-2. `eventhub-domain` skill — Overview and data models
-3. `eventhub-domain` sub-files — Read `./ui-selectors.md` for selectors, `./business-rules.md` for assertions, `./user-flows.md` for test steps
-4. `tests/*.spec.js` — Existing tests to match patterns
-5. `frontend/app/`, `frontend/components/` — Verify selectors exist in actual source code
+1. `docs/test-strategy.md` — Use it to confirm the target layer and coverage priorities for the feature.
+2. `eventhub-domain.md` — This is the single source of truth for the application domain: overview, API contracts, business rules, selectors, user flows, and test data.
+3. `playwright-best-practices` skill — Follow the Playwright coding standards and anti-pattern rules.
+4. `tests/*.spec.js` — Review existing tests to match the project’s patterns and conventions.
+5. `frontend/app/` and `frontend/components/` — Verify the selectors and behaviors still exist in the actual UI before writing assertions.
+
+Use the domain file as the authoritative source for selectors, business rules, validations, and user flows; do not rely on older split sub-files or assumptions from memory.
 
 ## Task
 Generate Playwright tests for: `$ARGUMENTS`

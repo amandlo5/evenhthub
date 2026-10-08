@@ -1,8 +1,14 @@
 ---
 name: playwright-best-practices
 description: Playwright E2E test automation standards — locator strategy, assertion patterns, test structure, POM, API mocking, auth patterns, wait strategies, and anti-patterns. Use when writing, reviewing, or debugging Playwright tests.
-user-invocable: false
+
+# tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'todo'] # specify the tools this agent can use. If not set, all enabled tools are allowed.
 ---
+
+<!-- Tip: Use /create-agent in chat to generate content with agent assistance -->
+
+Define what this custom agent does, including its behavior, capabilities, and any specific instructions for its operation.
+
 
 # Playwright Test Automation Best Practices for EventHub
 
