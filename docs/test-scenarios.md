@@ -256,3 +256,287 @@
 - After completion, the refund result is displayed with the correct message based on quantity.
 **Business Rule**: Refund eligibility logic displays a 4-second spinner before revealing the result on the frontend.
 **Suggested Layer**: Component
+
+### TC-005: Browse, search, and filter the event catalogue
+**Category**: Happy Path
+**Priority**: P0
+**Preconditions**: User is authenticated and events exist in the shared catalogue.
+**Steps**:
+1. Navigate to Upcoming Events.
+2. Search for a word appearing in an event title, description, or venue.
+3. Select a category and a city.
+4. Clear the filters.
+**Expected Results**:
+- Search results match title, description, or venue.
+- Category and city filters narrow results, and combined filters are applied together.
+- Clearing filters restores the unfiltered results.
+**Business Rule**: The events endpoint supports free-text search and category and city filters.
+**Suggested Layer**: E2E
+
+### TC-006: Open an event and review its details
+**Category**: Happy Path
+**Priority**: P0
+**Preconditions**: User is authenticated and an event is available.
+**Steps**:
+1. Open the event catalogue.
+2. Select an event card and open its detail page.
+3. Review the event information and available ticket action.
+**Expected Results**:
+- The detail page shows the selected event's title, description, category, date, venue, city, price, and available seats.
+- The displayed event matches the card selected.
+- The user can proceed to book the event when seats are available.
+**Business Rule**: Authenticated users can retrieve shared static events and their own dynamic events by ID.
+**Suggested Layer**: E2E
+
+### TC-007: Create a custom event
+**Category**: Happy Path
+**Priority**: P1
+**Preconditions**: User is authenticated and is on the Admin Events page.
+**Steps**:
+1. Enter a title, description, category, venue, city, future date, price, and total seats.
+2. Optionally enter a valid image URL.
+3. Submit the event form.
+4. Find the new event in the admin list and event catalogue.
+**Expected Results**:
+- A success notification appears and the form resets.
+- The new event is listed for its creator and has available seats equal to total seats.
+- The event is not exposed as a shared static event.
+**Business Rule**: Custom events belong to the creating user, and available seats start at total seats.
+**Suggested Layer**: E2E
+
+### TC-008: Update an owned custom event
+**Category**: Happy Path
+**Priority**: P1
+**Preconditions**: User owns a custom event.
+**Steps**:
+1. Open Admin Events and select Edit for the custom event.
+2. Change the title and one or more other event fields.
+3. Submit the update.
+4. Reopen the event and inspect the saved values.
+**Expected Results**:
+- The edit form is pre-filled with the selected event's current values.
+- The changes are saved and shown in the admin list and event detail.
+- No other event is changed.
+**Business Rule**: Users may update their own dynamic events.
+**Suggested Layer**: E2E
+
+### TC-009: Delete an owned custom event and its bookings
+**Category**: Happy Path
+**Priority**: P1
+**Preconditions**: User owns a custom event with at least one booking.
+**Steps**:
+1. Open Admin Events and select Delete for the custom event.
+2. Cancel the confirmation dialog and verify the event remains.
+3. Select Delete again and confirm.
+4. Inspect the event catalogue and bookings list.
+**Expected Results**:
+- Canceling the confirmation does not delete the event.
+- Confirming removes the event and its associated bookings.
+- The event no longer appears in the catalogue or event detail route.
+**Business Rule**: Deleting a dynamic event cascades to its bookings; the UI requires confirmation.
+**Suggested Layer**: E2E
+
+### TC-105: Creating a seventh custom event replaces only the oldest owned event
+**Category**: Business Rule
+**Priority**: P0
+**Preconditions**: User has created six custom events in a known order.
+**Steps**:
+1. Record the six event titles and creation order.
+2. Create a seventh custom event.
+3. Review the user's event list and another user's event list.
+**Expected Results**:
+- The newly created event is present and the oldest of the six is removed.
+- The five newer existing events remain.
+- Other users' events and shared static events remain unchanged.
+**Business Rule**: Each account can hold up to six custom events; creation at the limit prunes that user's oldest event (FIFO).
+**Suggested Layer**: API
+
+### TC-106: Static events are shared but excluded from custom-event management
+**Category**: Business Rule
+**Priority**: P1
+**Preconditions**: At least one static event and one custom event exist.
+**Steps**:
+1. Open the event catalogue and Admin Events as two different users.
+2. Compare visibility of the static event and the custom event.
+3. Review available actions for each event in Admin Events.
+**Expected Results**:
+- Both users can see the static event.
+- Each user sees their own custom event but not another user's custom event.
+- Static events are marked as featured/read-only and do not offer edit or delete actions.
+- Static events do not count toward the six-custom-event limit.
+**Business Rule**: Static events are shared and immutable; custom events are scoped to their owner.
+**Suggested Layer**: E2E
+
+### TC-107: Event catalogue pagination returns the correct page and count
+**Category**: Business Rule
+**Priority**: P1
+**Preconditions**: The authenticated user's visible catalogue contains more than 12 events.
+**Steps**:
+1. Open Upcoming Events and record the first page of results.
+2. Navigate to the next page.
+3. Return to the previous page.
+**Expected Results**:
+- The public event page shows at most 12 event cards per page.
+- Pagination reflects the total result count and correct current page.
+- The next page contains the remaining results without duplicating first-page entries.
+**Business Rule**: Event results are paginated; the event page requests 12 entries per page.
+**Suggested Layer**: E2E
+
+### TC-108: Static-event seat availability is isolated per user
+**Category**: Business Rule
+**Priority**: P0
+**Preconditions**: Two users can access the same static event with enough seats.
+**Steps**:
+1. Record the static event's available seats as User A.
+2. Book tickets as User A and revisit the event as User A.
+3. Open the same event as User B and record the available seats.
+**Expected Results**:
+- User A sees their available seats reduced by their booking quantity.
+- User B's available seats are unaffected by User A's booking.
+- The static event remains visible to both users.
+**Business Rule**: Static events are shared, but seat availability is calculated per user using that user's bookings.
+**Suggested Layer**: API
+
+### TC-202: Event endpoints reject unauthenticated requests
+**Category**: Security
+**Priority**: P0
+**Preconditions**: No valid bearer token is available.
+**Steps**:
+1. Call the event list and detail endpoints without a token.
+2. Attempt to create, update, and delete an event without a token.
+**Expected Results**:
+- Each request is rejected as unauthorized.
+- No event data or mutation is returned to or performed for the unauthenticated caller.
+**Business Rule**: All event API routes require authentication.
+**Suggested Layer**: API
+
+### TC-203: A user cannot read or change another user's custom event
+**Category**: Security
+**Priority**: P0
+**Preconditions**: User A owns a custom event; User B is authenticated separately and knows its ID.
+**Steps**:
+1. As User B, request the event list and User A's event detail URL.
+2. Attempt to update and delete User A's event using its ID.
+3. Verify the event remains unchanged for User A.
+**Expected Results**:
+- User A's custom event is absent from User B's list and is not retrievable by User B.
+- User B cannot update or delete the event.
+- User A's event and its fields remain unchanged.
+**Business Rule**: Dynamic events are visible and manageable only by their owner.
+**Suggested Layer**: API
+
+### TC-204: Static-event mutation requests are forbidden
+**Category**: Security
+**Priority**: P1
+**Preconditions**: User is authenticated and knows a static event ID.
+**Steps**:
+1. Attempt to update the static event through the API.
+2. Attempt to delete the static event through the API.
+3. Verify the event remains available in the catalogue.
+**Expected Results**:
+- Update and delete requests are rejected with a forbidden response.
+- The static event's data remains unchanged and the event remains available.
+**Business Rule**: Static events cannot be edited or deleted.
+**Suggested Layer**: API
+
+### TC-302: Event creation rejects missing required fields and invalid dates
+**Category**: Negative
+**Priority**: P1
+**Preconditions**: User is authenticated and has fewer than six custom events.
+**Steps**:
+1. Submit the create form with each required field missing or whitespace-only, one field at a time.
+2. Submit an invalid date and then a date in the past.
+3. Try to submit each invalid form.
+**Expected Results**:
+- Client-side validation identifies missing required values.
+- Invalid or past dates are rejected with a validation error.
+- No event is created for any invalid submission, and entered values remain available for correction.
+**Business Rule**: Title, category, venue, city, event date, price, and total seats are required; event dates must be valid and in the future.
+**Suggested Layer**: API
+
+### TC-303: Event creation rejects invalid price, seat count, and image URL
+**Category**: Negative
+**Priority**: P1
+**Preconditions**: User is authenticated and can create a custom event.
+**Steps**:
+1. Submit an event with a negative or non-numeric price.
+2. Submit an event with zero, negative, or fractional total seats.
+3. Submit an event with a malformed image URL.
+**Expected Results**:
+- Each invalid value is rejected with a field-specific validation error.
+- No event is created from an invalid submission.
+- A price of zero and an omitted optional image URL are accepted when all other values are valid.
+**Business Rule**: Price must be a non-negative number, total seats a positive integer, and an optional image URL a valid URL.
+**Suggested Layer**: API
+
+### TC-304: Requesting an unknown or non-owned event ID does not expose event data
+**Category**: Negative
+**Priority**: P1
+**Preconditions**: User is authenticated; the requested ID is either nonexistent or belongs to another user.
+**Steps**:
+1. Request event details using the ID.
+2. Attempt to update and delete the event using the same ID.
+**Expected Results**:
+- The event is not returned to the caller.
+- Update and delete operations do not change another user's event.
+- The API returns a not-found or other documented denial response without disclosing event details.
+**Business Rule**: Event lookup and mutation are restricted to shared static events and the current user's events.
+**Suggested Layer**: API
+
+### TC-402: Event creation accepts minimum valid numeric values
+**Category**: Edge Case
+**Priority**: P1
+**Preconditions**: User is authenticated and is below the six-event limit.
+**Steps**:
+1. Create a custom event with price zero and exactly one seat.
+2. Reopen the event and inspect its stored details.
+**Expected Results**:
+- The event is created successfully.
+- Price remains zero, total seats is one, and available seats starts at one.
+**Business Rule**: Event price may be zero; total seats must be at least one.
+**Suggested Layer**: API
+
+### TC-403: Search with no matches shows a recoverable empty state
+**Category**: Edge Case
+**Priority**: P2
+**Preconditions**: User is authenticated and event search is available.
+**Steps**:
+1. Search for a unique term that does not appear in any visible event.
+2. Replace the search with a term known to match an event.
+3. Clear the search.
+**Expected Results**:
+- No-match search shows the “No events found” state rather than a broken or stale list.
+- Replacing or clearing the search loads matching events again.
+**Business Rule**: Search filters the visible event collection and may return an empty result.
+**Suggested Layer**: Component
+
+### TC-502: Events page shows loading, error, and retry states
+**Category**: UI State
+**Priority**: P1
+**Preconditions**: User is authenticated; the event API can be delayed or made unavailable in a controlled test.
+**Steps**:
+1. Delay the event-list response while opening Upcoming Events.
+2. Verify loading placeholders appear.
+3. Make the request fail and verify the error state.
+4. Restore the API and activate Retry.
+**Expected Results**:
+- Loading placeholders appear while events are being fetched.
+- A recoverable error message and Retry action appear after failure.
+- Retry reloads and displays events once the API is available.
+**Business Rule**: Event-list loading and request failures have explicit UI states.
+**Suggested Layer**: Component
+
+### TC-503: Admin Events page handles an empty event list and edit cancellation
+**Category**: UI State
+**Priority**: P2
+**Preconditions**: User is authenticated and has no custom events.
+**Steps**:
+1. Open Admin Events and inspect the event list.
+2. Create a custom event and select Edit.
+3. Cancel editing without submitting changes.
+**Expected Results**:
+- An empty-state prompt is shown when the user has no visible events.
+- Selecting Edit pre-fills the form and changes its heading and submit action.
+- Cancel edit restores the new-event form without changing the saved event.
+**Business Rule**: The admin event list and form adapt to empty, create, and edit states.
+**Suggested Layer**: Component
