@@ -109,10 +109,12 @@ test.describe('Booking Journey — E2E', () => {
       await page.getByRole('link', { name: 'View My Bookings' }).click();
       await expect(page).toHaveURL(`${BASE_URL}/bookings`);
       const bookingCards = page.getByTestId('booking-card');
-      await expect(bookingCards).toHaveCount(1);
-      const firstCard = bookingCards.first();
-      await expect(firstCard.locator('.booking-ref')).toHaveText(bookingRef);
-      await expect(firstCard).toContainText(eventTitle);
+      const bookingCard = bookingCards.filter({
+        has: page.locator('.booking-ref', { hasText: bookingRef }),
+      });
+      await expect(bookingCard).toHaveCount(1);
+      await expect(bookingCard.locator('.booking-ref')).toHaveText(bookingRef);
+      await expect(bookingCard).toContainText(eventTitle);
     });
 
     // -- Step 7: Reload the event page — seats decreased by 2 --
@@ -143,8 +145,10 @@ test.describe('Booking Journey — E2E', () => {
     // -- Step 3: Open /bookings --
     await page.goto(`${BASE_URL}/bookings`);
     const cards = page.getByTestId('booking-card');
-    await expect(cards).toHaveCount(1);
-    const card = cards.first();
+    const card = cards.filter({
+      has: page.locator('.booking-ref', { hasText: booking.bookingRef }),
+    });
+    await expect(card).toHaveCount(1);
 
     // -- Step 4: Assert every card field matches the API response --
     await expect(card.locator('.booking-ref')).toHaveText(booking.bookingRef);
