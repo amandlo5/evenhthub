@@ -2,15 +2,16 @@
 # Playwright E2E Tests
 #
 # PURPOSE:
-#   Runs the full Playwright test suite against the deployed production
-#   environment on every push to main. Uploads the HTML report as an artifact
-#   so results can be reviewed directly in the GitHub Actions UI.
+#   Runs the full Playwright test suite on every push to main and uploads the
+#   HTML report as an artifact so results can be reviewed in the Actions UI.
 #
-# TRIGGER: push to main
+# TRIGGER: push to main (plus manual runs via workflow_dispatch)
 #
 # NOTES:
-#   - Tests run against https://eventhub.rahulshettyacademy.com (live site)
+#   - Tests run against https://eventhub.rahulshettyacademy.com (live site,
+#     see baseURL in playwright.config.ts)
 #   - Chromium only (as configured in playwright.config.ts)
+#   - The job fails when any test fails, but the HTML report is always uploaded
 #   - HTML report is retained for 30 days as a downloadable artifact
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -28,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '21.7.1'
+  NODE_VERSION: '20'
 
 jobs:
 
@@ -64,20 +65,18 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       # ── Run all Playwright tests ─────────────────────────────────────────────
-      # Tests run against the live site defined in playwright.config.ts.
-      # --reporter=html,line gives a browsable HTML report + inline line output.
-      # `|| true` ensures the artifact upload step always runs even if tests fail.
+      # html reporter writes playwright-report/; line reporter streams to the log.
+      # A test failure fails this step (and the job); the upload step below
+      # still runs because of `if: always()`.
       - name: Run Playwright tests
         run: npx playwright test --reporter=html,line
-        continue-on-error: true
 
       # ── Upload HTML report as artifact ───────────────────────────────────────
-      # The report is generated in playwright-report/ by the html reporter.
-      # Retained for 30 days so the team can review results after a run.
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report-${{ github.run_id }}
           path: playwright-report/
+          if-no-files-found: warn
           retention-days: 30
