@@ -104,7 +104,7 @@ test.describe('Booking Journey — E2E', () => {
     const confirmationTotal = page.getByText(new RegExp(`^Total\\s*${escapeRegExp(expectedTotal)}$`));
     await expect(confirmationTotal).toBeVisible();
 
-    // -- Step 6 (TC-008): "View My Bookings" → first card has the matching ref --
+    // -- Step 6 (TC-008): "View My Bookings" → booking card has the matching ref --
     await test.step('TC-008: confirmation → View My Bookings', async () => {
       await page.getByRole('link', { name: 'View My Bookings' }).click();
       await expect(page).toHaveURL(`${BASE_URL}/bookings`);
