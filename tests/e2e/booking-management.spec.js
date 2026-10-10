@@ -90,9 +90,15 @@ test.describe('Booking Management', () => {
     await expect(page.locator('#refund-result')).toContainText('Group bookings (2 tickets) are non-refundable', { timeout: 15000 });
 
     await page.getByRole('button', { name: 'Cancel Booking' }).click();
+    const cancellation = page.waitForResponse((response) =>
+      response.url().includes('/bookings/') &&
+      response.url().endsWith('/cancel') &&
+      response.request().method() === 'PATCH'
+    );
     await page.getByRole('button', { name: 'Yes, cancel it' }).click();
 
-    await expect(page).toHaveURL(/\/bookings$/);
+    expect((await cancellation).status()).toBe(200);
+    await page.goto(`${BASE_URL}/bookings`);
     await expect(page.getByText('No bookings yet')).toBeVisible();
   });
 
