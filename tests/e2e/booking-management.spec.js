@@ -91,9 +91,8 @@ test.describe('Booking Management', () => {
 
     await page.getByRole('button', { name: 'Cancel Booking' }).click();
     const cancellation = page.waitForResponse((response) =>
-      response.url().includes('/bookings/') &&
-      response.url().endsWith('/cancel') &&
-      response.request().method() === 'PATCH'
+      /\/bookings\/\d+$/.test(new URL(response.url()).pathname) &&
+      response.request().method() === 'DELETE'
     );
     await page.getByRole('button', { name: 'Yes, cancel it' }).click();
 
